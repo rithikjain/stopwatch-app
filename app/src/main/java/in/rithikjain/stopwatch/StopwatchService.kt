@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import java.util.*
 
 class StopwatchService : Service() {
@@ -38,6 +39,9 @@ class StopwatchService : Service() {
     private var updateTimer = Timer()
     private var stopwatchTimer = Timer()
 
+    // Getting access to the NotificationManager
+    private lateinit var notificationManager: NotificationManager
+
     override fun onBind(p0: Intent?): IBinder? {
         Log.d("Stopwatch", "Stopwatch onBind")
         return null
@@ -46,6 +50,7 @@ class StopwatchService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         createChannel()
+        getNotificationManager()
 
         val action = intent?.getStringExtra(STOPWATCH_ACTION)!!
 
@@ -135,6 +140,13 @@ class StopwatchService : Service() {
         }
     }
 
+    private fun getNotificationManager() {
+        notificationManager = ContextCompat.getSystemService(
+            this,
+            NotificationManager::class.java
+        ) as NotificationManager
+    }
+
     private fun buildNotification(): Notification {
         val title = if (isStopWatchRunning) {
             "Stopwatch is running!"
@@ -170,11 +182,9 @@ class StopwatchService : Service() {
 
 
     private fun updateNotification() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            getSystemService(NotificationManager::class.java)?.notify(
-                1,
-                buildNotification()
-            )
-        }
+        notificationManager.notify(
+            1,
+            buildNotification()
+        )
     }
 }
