@@ -82,13 +82,6 @@ class StopwatchService : Service() {
     private fun moveToBackground() {
         updateTimer.cancel()
         stopForeground(true)
-
-        val notificationManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            getSystemService(NotificationManager::class.java)
-        } else {
-            TODO("VERSION.SDK_INT < M")
-        }
-        notificationManager.cancel(1)
     }
 
     private fun startStopwatch() {
