@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
 
-        // Moving the service to background when the app in visible
+        // Moving the service to background when the app is visible
         moveToBackground()
     }
 

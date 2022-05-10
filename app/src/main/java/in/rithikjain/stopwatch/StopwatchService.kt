@@ -42,12 +42,24 @@ class StopwatchService : Service() {
     // Getting access to the NotificationManager
     private lateinit var notificationManager: NotificationManager
 
+    /*
+    * The system calls onBind() method to retrieve the IBinder only when the first client binds.
+    * The system then delivers the same IBinder to any additional clients that bind,
+    * without calling onBind() again.
+    * */
     override fun onBind(p0: Intent?): IBinder? {
         Log.d("Stopwatch", "Stopwatch onBind")
         return null
     }
 
 
+    /*
+    * onStartCommand() is called every time a client starts the service
+    * using startService(Intent intent)
+    * We will check for what action has this service been called for and then perform the
+    * action accordingly. The action is extracted from the intent that is used to start
+    * this service.
+    * */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         createChannel()
         getNotificationManager()
@@ -68,6 +80,12 @@ class StopwatchService : Service() {
         return START_STICKY
     }
 
+    /*
+    * This function is triggered when the app is not visible to the user anymore
+    * It check if the stopwatch is running, if it is then it starts a foreground service
+    * with the notification.
+    * We run another timer to update the notification every second.
+    * */
     private fun moveToForeground() {
 
         if (isStopWatchRunning) {
@@ -84,11 +102,23 @@ class StopwatchService : Service() {
         }
     }
 
+    /*
+    * This function is triggered when the app is visible again to the user
+    * It cancels the timer which was updating the notification every second
+    * It also stops the foreground service and removes the notification
+    * */
     private fun moveToBackground() {
         updateTimer.cancel()
         stopForeground(true)
     }
 
+    /*
+    * This function starts the stopwatch
+    * Sets the status of stopwatch running to true
+    * We start a Timer and increase the timeElapsed by 1 every second and broadcast the value
+    * with the action of STOPWATCH_TICK.
+    * We will receive this broadcast in the MainActivity to get access to the time elapsed.
+    * */
     private fun startStopwatch() {
         isStopWatchRunning = true
 
@@ -108,18 +138,30 @@ class StopwatchService : Service() {
         }, 0, 1000)
     }
 
+    /*
+    * This function pauses the stopwatch
+    * Sends an update of the current state of the stopwatch
+    * */
     private fun pauseStopwatch() {
         stopwatchTimer.cancel()
         isStopWatchRunning = false
         sendStatus()
     }
 
+    /*
+    * This function resets the stopwatch
+    * Sends an update of the current state of the stopwatch
+    * */
     private fun resetStopwatch() {
         pauseStopwatch()
         timeElapsed = 0
         sendStatus()
     }
 
+    /*
+    * This function is responsible for broadcasting the status of the stopwatch
+    * Broadcasts if the stopwatch is running and also the time elapsed
+    * */
     private fun sendStatus() {
         val statusIntent = Intent()
         statusIntent.action = STOPWATCH_STATUS
@@ -149,6 +191,10 @@ class StopwatchService : Service() {
         ) as NotificationManager
     }
 
+    /*
+    * This function is responsible for building and returning a Notification with the current
+    * state of the stopwatch along with the timeElapsed
+    * */
     private fun buildNotification(): Notification {
         val title = if (isStopWatchRunning) {
             "Stopwatch is running!"
@@ -183,6 +229,9 @@ class StopwatchService : Service() {
     }
 
 
+    /*
+    * This function uses the notificationManager to update the existing notification with the new notification
+    * */
     private fun updateNotification() {
         notificationManager.notify(
             1,
