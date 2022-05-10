@@ -133,8 +133,10 @@ class StopwatchService : Service() {
             val notificationChannel = NotificationChannel(
                 CHANNEL_ID,
                 "Stopwatch",
-                NotificationManager.IMPORTANCE_LOW
+                NotificationManager.IMPORTANCE_DEFAULT
             )
+            notificationChannel.setSound(null, null)
+            notificationChannel.setShowBadge(true)
             val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(notificationChannel)
         }
@@ -173,7 +175,7 @@ class StopwatchService : Service() {
             )
             .setColorized(true)
             .setColor(Color.parseColor("#BEAEE2"))
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_clock)
             .setOnlyAlertOnce(true)
             .setContentIntent(pIntent)
             .setAutoCancel(true)
