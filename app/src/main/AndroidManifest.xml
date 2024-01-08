@@ -3,6 +3,8 @@
     package="in.rithikjain.stopwatch">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
 
     <application
         android:allowBackup="true"
@@ -22,8 +24,10 @@
         </activity>
 
         <service
+            android:foregroundServiceType="shortService"
             android:name=".StopwatchService"
             android:enabled="true" />
+
     </application>
 
 </manifest>

@@ -1,14 +1,20 @@
 package `in`.rithikjain.stopwatch
 
-import android.app.*
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
-import java.util.*
+import java.util.Timer
+import java.util.TimerTask
+import androidx.media.app.NotificationCompat.MediaStyle
 
 class StopwatchService : Service() {
     companion object {
@@ -64,7 +70,7 @@ class StopwatchService : Service() {
         createChannel()
         getNotificationManager()
 
-        val action = intent?.getStringExtra(STOPWATCH_ACTION)!!
+        val action = intent?.getStringExtra(STOPWATCH_ACTION)
 
         Log.d("Stopwatch", "onStartCommand Action: $action")
 
@@ -75,6 +81,9 @@ class StopwatchService : Service() {
             GET_STATUS -> sendStatus()
             MOVE_TO_FOREGROUND -> moveToForeground()
             MOVE_TO_BACKGROUND -> moveToBackground()
+            else -> {
+                Log.d("Stopwatch", "onStartCommand: Invalid Action")
+            }
         }
 
         return START_STICKY
@@ -96,7 +105,6 @@ class StopwatchService : Service() {
             updateTimer.scheduleAtFixedRate(object : TimerTask() {
                 override fun run() {
                     updateNotification()
-
                 }
             }, 0, 1000)
         }
@@ -109,7 +117,11 @@ class StopwatchService : Service() {
     * */
     private fun moveToBackground() {
         updateTimer.cancel()
-        stopForeground(true)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_DETACH)
+        } else {
+            stopForeground(true)
+        }
     }
 
     /*
@@ -185,10 +197,7 @@ class StopwatchService : Service() {
     }
 
     private fun getNotificationManager() {
-        notificationManager = ContextCompat.getSystemService(
-            this,
-            NotificationManager::class.java
-        ) as NotificationManager
+        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     }
 
     /*
@@ -207,7 +216,12 @@ class StopwatchService : Service() {
         val seconds: Int = timeElapsed.rem(60)
 
         val intent = Intent(this, MainActivity::class.java)
-        val pIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT)
+        val pIntent = PendingIntent.getActivity(
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_MUTABLE
+        )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(title)
@@ -224,8 +238,35 @@ class StopwatchService : Service() {
             .setSmallIcon(R.drawable.ic_clock)
             .setOnlyAlertOnce(true)
             .setContentIntent(pIntent)
-            .setAutoCancel(true)
+            .setAutoCancel(false)
+            .apply {
+                val icon = if (isStopWatchRunning) {
+                    R.drawable.ic_pause
+                } else {
+                    R.drawable.ic_play
+                }
+                val titleAction = if (isStopWatchRunning) "stop" else "start"
+                val actionCommand = if (isStopWatchRunning) PAUSE else START
+
+                addAction(
+                    icon,
+                    titleAction,
+                    PendingIntent.getService(
+                        this@StopwatchService,
+                        0,
+                        Intent(
+                            this@StopwatchService,
+                            StopwatchService::class.java
+                        ).apply {
+                            putExtra(STOPWATCH_ACTION, actionCommand)
+                        },
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+                    )
+                )
+            }
+            .setStyle(MediaStyle().setShowActionsInCompactView(0))
             .build()
+
     }
 
 

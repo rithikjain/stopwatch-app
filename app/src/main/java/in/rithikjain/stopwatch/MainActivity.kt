@@ -1,15 +1,18 @@
 package `in`.rithikjain.stopwatch
 
-import `in`.rithikjain.stopwatch.databinding.ActivityMainBinding
+import android.Manifest.permission.POST_NOTIFICATIONS
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import androidx.appcompat.app.AppCompatActivity
+import android.os.Build
 import android.os.Bundle
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import `in`.rithikjain.stopwatch.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,6 +22,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var statusReceiver: BroadcastReceiver
     private lateinit var timeReceiver: BroadcastReceiver
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,7 +37,18 @@ class MainActivity : AppCompatActivity() {
         binding.resetImageView.setOnClickListener {
             resetStopwatch()
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(POST_NOTIFICATIONS),
+                1
+            )
+        } else {
+            // old way
+        }
     }
+
 
     override fun onStart() {
         super.onStart()
